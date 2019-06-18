@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--namespace写对应的接口的全路径-->
+<mapper namespace="com.example.lml.demolml.repository.UserRepository">
+
+    <!--role表-->
+    <resultMap id="RoleMap" type="com.example.lml.demolml.domain.Role">
+
+        <!--主键-->
+        <result column="id" property="id"/>
+
+        <!--普通的东西（列）-->
+        <result column="role_name" property="roleName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" javaType="java.util.Date"/>
+        <result column="super_role" property="superRole"/>
+        <result column="state" property="state"/>
+        <result column="remark" property="remark"/>
+
+    </resultMap>
+
+
+
+    <!--user表-->
+    <resultMap id="UserResultMap" type="com.example.lml.demolml.domain.User">
+
+        <!--主键-->
+        <result column="id" property="id"/>
+
+        <!--普通列-->
+        <result column="user_name" property="userName"/>
+        <result column="remark" property="remark"/>
+    </resultMap>
+
+
+    <!--user的列集-->
+    <sql id="User_Column_List">
+        id,user_name,remark
+    </sql>
+
+
+    <!--role的列集-->
+    <sql id="Role_Column_List">
+        id,role_name,create_time,super_role,state,remark
+    </sql>
+
+    <!---->
+    <!--查找所有角色-->
+    <!--<select id="findAllOfRole" resultMap="RoleMap">-->
+        <!--select <include refid="Role_Column_List"/>-->
+        <!--from role-->
+    <!--</select>-->
+
+
+    <!--查找所有user-->
+    <select id="findAll" resultMap="UserResultMap">
+        select <include refid="User_Column_List"/>
+        from user
+    </select>
+
+
+    <!--根据id查找user-->
+    <select id="findOneById" resultMap="UserResultMap">
+        select <include refid="User_Column_List"/>
+        from user where id=#{id}
+    </select>
+
+</mapper>

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--namespace写对应的接口的全路径-->
+<mapper namespace="com.example.lml.demolml.repository.PermissionRepository">
+
+    <!--permission表-->
+    <resultMap id="PermissionMap" type="com.example.lml.demolml.domain.Permission">
+
+        <!--主键-->
+        <result column="id" property="id"/>
+
+        <!--普通的东西（列）-->
+        <result column="permission_name" property="permissionName"/>
+        <result column="permission_type" property="permissionType"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" javaType="java.util.Date"/>
+        <result column="remark" property="remark"/>
+
+    </resultMap>
+
+
+
+
+    <!--user的列集-->
+    <sql id="Base_Column_List">
+        id,user_name,remark
+    </sql>
+
+
+    <sql id="Feature_Assignment_Column_List">
+        id,feature_id,permission_id,remark
+    </sql>
+
+
+    <!--permission的列集-->
+    <sql id="Permission_Column_List">
+        id,permission_name,permission_name,create_time,remark
+    </sql>
+
+
+    <!--查找所有permission-->
+    <select id="findAll" resultMap="PermissionMap">
+        select <include refid="Permission_Column_List"/>
+        from permission
+    </select>
+
+
+    <!--根据id查找权限-->
+    <select id="findOneById" resultMap="PermissionMap">
+        select <include refid="Permission_Column_List"/>
+        from permission where id=#{id}
+    </select>
+
+    <!--通过内连接哟个roleId查询permission表-->
+    <select id="findAllByRoleId" resultMap="PermissionMap">
+        SELECT m.*,l.permission_id
+        FROM permission m JOIN permission_assignment l
+        on l.role_id=#{id} and m.id=l.permission_id;
+    </select>
+
+    <!--通过内连接哟个userId查询permission表-->
+    <select id="findAllByUserId" resultMap="PermissionMap">
+        SELECT m.*,l.role_id,n.user_id
+        FROM permission m JOIN permission_assignment l JOIN role_assignment n
+        on n.role_id=l.role_id and m.id=l.permission_id and n.user_id=#{id}
+    </select>
+
+    <!--通过角色ID删除permission表-->
+    <delete id="deleteById" >
+        delete from permission where id = #{id}
+    </delete>
+
+    <!--通过角色ID删除PA表-->
+    <delete id="deletePAByPermissionId" >
+        delete from permission_assignment where permission_id = #{id}
+    </delete>
+
+    <!--通过角色ID删除FA表-->
+    <delete id="deleteFAByPermissionId" >
+        delete from feature_assignment where permission_id = #{id}
+    </delete>
+
+    <insert id="addPower" parameterType="com.example.lml.demolml.domain.FeatureAssignment">
+
+    </insert>
+
+    <insert id="addPermission" parameterType="com.example.lml.demolml.domain.Permission">
+        <selectKey keyProperty="count" resultType="java.lang.Integer" order="BEFORE">
+            select count(id) from permission where id = #{permissionId}
+        </selectKey>
+        <if test="count > 0">
+            update permission
+            <set>
+                id=#{permissionId}, permission_name= #{permissionName},  permission_type= #{permissionType}, create_time = #{createTime},
+                remark = #{remark}
+            </set>
+            <where>
+                id = #{permissionId}
+            </where>
+        </if>
+        <if test="count == 0">
+            insert into permission (
+            <include refid="Permission_Column_List" />
+            )
+            values(
+            #{permissionId}, #{permissionName},#{#permissionType}, #{createTime}, #{remark}
+            )
+        </if>
+
+    </insert>
+
+    <insert id="addPowerOfPermission" parameterType="com.example.lml.demolml.domain.FeatureAssignment">
+        <selectKey keyProperty="count" resultType="java.lang.Integer" order="BEFORE">
+            select count(id) from feature_assignment where permission_id = #{permissionId}
+            and feature_id=#{featureId}
+        </selectKey>
+        <if test="count == 0">
+            insert into feature_assignment (
+            <include refid="Feature_Assignment_Column_List" />
+            )
+            values(
+            #{id}, #{featureId},#{permissionId}, #{remark}
+            )
+        </if>
+    </insert>
+
+
+</mapper>

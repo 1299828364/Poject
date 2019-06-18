@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--namespace写对应的接口的全路径-->
+<mapper namespace="com.example.lml.demolml.repository.RoleRepository">
+
+    <!--role表-->
+    <resultMap id="RoleMap" type="com.example.lml.demolml.domain.Role">
+
+        <!--主键-->
+        <result column="id" property="roleId"/>
+
+        <!--普通的东西（列）-->
+        <result column="role_name" property="roleName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" javaType="java.util.Date"/>
+        <result column="super_role" property="superRole"/>
+        <result column="state" property="state"/>
+        <result column="remark" property="remark"/>
+
+    </resultMap>
+
+
+    <!--role_group_assignment表-->
+    <resultMap id="RoleGroupAssignmentMap" type="com.example.lml.demolml.domain.User">
+
+        <!--主键-->
+        <result column="id" property="id"/>
+
+        <!--普通列-->
+        <result column="user_group_id" property="userGroupId"/>
+        <result column="user_id" property="userId"/>
+        <result column="remark" property="remark"/>
+    </resultMap>
+
+
+
+    <!--permission_assignment表-->
+    <resultMap id="PermissionAssignmentMap" type="com.example.lml.demolml.domain.PermissionAssignment">
+
+        <!--主键-->
+        <result column="id" property="id"/>
+
+        <!--普通的东西（列）-->
+        <result column="role_id" property="roleId"/>
+        <result column="permission_id" property="permissionId"/>
+        <result column="remark" property="remark"/>
+
+    </resultMap>
+
+    <!--role_assignment表-->
+    <resultMap id="RoleAssignmentMap" type="com.example.lml.demolml.domain.RoleAssignment">
+
+        <!--主键-->
+        <result column="id" property="id"/>
+
+        <!--普通的东西（列）-->
+        <result column="user_id" property="userId"/>
+        <result column="role_id" property="roleId"/>
+        <result column="remark" property="remark"/>
+
+    </resultMap>
+
+
+
+
+    <!--permission_assignment的列集-->
+    <sql id="Permission_Assignment_Column_List">
+        id,role_id,permission_id,remark
+    </sql>
+
+    <!--role_assignment的列集-->
+    <sql id="Role_Assignment_Column_List">
+        id,user_id,role_id,remark
+    </sql>
+
+    <!--role_group_assignment的列集-->
+    <sql id="Role_Group_Assignment_Column_List">
+        id,user_group_id,reole_id,remark
+    </sql>
+
+    <!--role的列集-->
+    <sql id="Role_Column_List">
+        id,role_name,create_time,super_role,state,remark
+    </sql>
+
+
+    <!--通过内连接哟个userId查询role表-->
+    <select id="liuminglang" resultMap="RoleMap">
+        SELECT m.*,l.role_id
+        FROM role m JOIN role_assignment l
+        on m.id=#{id} and m.id=l.role_id;
+    </select>
+
+    <!--查找所有角色-->
+    <select id="findAllOfRole" resultMap="RoleMap">
+        select <include refid="Role_Column_List"/>
+        from role
+    </select>
+
+
+    <!--通过角色ID查找角色表-->
+    <select id="findOneOfRoleByRoleId" resultMap="RoleMap">
+        select <include refid="Role_Column_List"/>
+        from role where id=#{id}
+    </select>
+
+
+    <!--通过用户ID查找RoleAssignment表-->
+    <select id="findOneOfRAByUserId" resultMap="RoleAssignmentMap">
+        select <include refid="Role_Assignment_Column_List"/>
+        from role_assignment where user_id=#{id}
+    </select>
+
+    <!--查找所有user-->
+    <select id="findAllOfPA" resultMap="PermissionAssignmentMap">
+        select <include refid="Permission_Assignment_Column_List"/>
+        from permission_assignment
+    </select>
+
+
+    <!--查看RoleAssignment表的所有内容-->
+    <select id="findAllOfRA" resultMap="RoleAssignmentMap">
+        select <include refid="Role_Assignment_Column_List"/>
+        from role_assignment
+    </select>
+
+
+
+    <!--通过权限ID查找PermissionAssignment表-->
+    <select id="findOneOfPAByPermissionId" resultMap="PermissionAssignmentMap" >
+        select <include refid="Permission_Assignment_Column_List"/>
+        from permission_assignment where permission_id=#{id}
+    </select>
+
+    <!--通过角色ID查询PermissionAssignment表-->
+    <delete id="deleteOfPAByRoleId" >
+        delete from permission_assignment where role_id = #{id}
+    </delete>
+
+    <!--通过角色ID删除RoleAssignment里的数据-->
+    <delete id="deleteOfRAByRoleId" >
+        delete from role_assignment where role_id = #{id}
+    </delete>
+
+    <!--通过角色ID删除RoleGroupAssignment里的数据-->
+    <delete id="deleteOfRGAByRoleId" >
+        delete from role_group_assignment where role_id = #{id}
+    </delete>
+
+    <!--通过角色ID删除Role表-->
+    <delete id="deleteOfRoleByRoleId" >
+        delete from role where id = #{id}
+    </delete>
+
+    <!--通过SuperId重置role表里的父级关系-->
+    <update id="resetSuperId" keyProperty="super_role">
+        update role set super_role=null where super_role=#{id}
+    </update>
+
+    <insert id="addRole" parameterType="com.example.lml.demolml.domain.Role">
+        <selectKey keyProperty="count" resultType="java.lang.Integer" order="BEFORE">
+            select count(id) from role where id = #{roleId}
+        </selectKey>
+        <if test="count > 0">
+            update role
+            <set>
+                id=#{roleId}, role_name= #{roleName},  create_time= #{createTime}, super_role = #{superRole},
+                state = #{state}, remark = #{remark}
+            </set>
+            <where>
+                id = #{roleId}
+            </where>
+        </if>
+        <if test="count == 0">
+            insert into role (
+            <include refid="Role_Column_List" />
+            )
+            values(
+            #{roleId}, #{roleName}, #{createTime}, #{superRole}, #{state}, #{remark}
+            )
+        </if>
+    </insert>
+
+    <insert id="updateRole" parameterType="com.example.lml.demolml.domain.Role">
+        update role
+        <set>
+            id=#{role.roleId}, role_name= #{role.roleName},  create_time= #{role.createTime}, super_role = #{role.superRole},
+            state = #{role.state}, remark = #{role.remark}
+        </set>
+        <where>
+            id = #{ID}
+        </where>
+    </insert>
+
+    <insert id="updateRoleState" parameterType="com.example.lml.demolml.domain.Role">
+        update role
+        <set>
+            state=#{state}
+        </set>
+        <where>
+            id=#{ID}
+        </where>
+    </insert>
+
+    <insert id="dispatch" parameterType="com.example.lml.demolml.domain.RoleAssignment">
+        <selectKey keyProperty="count" resultType="java.lang.Integer" order="BEFORE">
+            select count(id) from role_assignment where user_id = #{userId} and role_id=#{roleId}
+        </selectKey>
+
+        <if test="count == 0">
+            insert into role_assignment (
+            <include refid="Role_Assignment_Column_List" />
+            )
+            values(
+            #{id}, #{userId}, #{roleId},""
+            )
+        </if>
+    </insert>
+
+    <!--通过角色ID下所有权限-->
+    <delete id="deletePermissionAll" >
+        delete from permission_assignment where role_id = #{roleId}
+    </delete>
+
+
+    <!--根基权限Id删除角色权限-->
+    <delete id="deletePermissionOne" >
+        delete from permission_assignment where role_id = #{roleId} and permission_id=#{permissionId}
+    </delete>
+    
+    
+
+    <!--<select id="findAllOfRA" resultMap="RoleAssignmentMap">-->
+        <!--select <include refid="Role_Assignment_Column_List"/>-->
+        <!--from role_assignment-->
+    <!--</select>-->
+    <!--<select id="findOneById" resultMap="BaseResultMap">-->
+        <!--select <include refid="Base_Column_List"/>-->
+        <!--from user where user_id=#{id}-->
+    <!--</select>-->
+
+</mapper>

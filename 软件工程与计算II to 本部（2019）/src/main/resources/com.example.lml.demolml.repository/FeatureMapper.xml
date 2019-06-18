@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--namespace写对应的接口的全路径-->
+<mapper namespace="com.example.lml.demolml.repository.FeatureRepository">
+
+    <!--feature表-->
+    <resultMap id="FeatureMap" type="com.example.lml.demolml.domain.Feature">
+
+        <!--主键-->
+        <result column="id" property="id"/>
+
+        <!--普通的东西（列）-->
+        <result column="feature_name" property="featureName"/>
+        <result column="remark" property="remark"/>
+
+    </resultMap>
+
+
+
+    <!--feature的列集-->
+    <sql id="Feature_Column_List">
+        id,feature_name,remark
+    </sql>
+
+
+    <!--查找所有user-->
+    <select id="findAll" resultMap="FeatureMap">
+        select <include refid="Feature_Column_List"/>
+        from feature
+    </select>
+
+    <!--根据id查找user-->
+    <select id="findOne" resultMap="FeatureMap">
+        select <include refid="Feature_Column_List"/>
+        from feature where id=#{id}
+    </select>
+
+
+</mapper>
